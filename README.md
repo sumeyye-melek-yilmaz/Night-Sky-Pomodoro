@@ -1,4 +1,6 @@
-🌌 Night Sky Pomodoro
+<img width="1440" height="596" alt="image" src="https://github.com/user-attachments/assets/b788d962-3183-4782-9651-cfbe526e49aa" />
+Night Sky Pomodoro
+
 Python (Pygame) ve modern Web teknolojileri (HTML5 Canvas/JS) kullanılarak geliştirilen, odaklanma sürecini görsel bir deneyime dönüştüren bir verimlilik aracıdır.
 
 ✨ Özellikler
