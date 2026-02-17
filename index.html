@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Night Sky Pomodoro</title>
+    <style>
+        :root {
+            --bg-color: #050b1a;
+            --gold: #ffd700;
+        }
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            background: rgba(10, 20, 45, 0.6);
+            padding: 40px 60px;
+            border-radius: 30px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #timer {
+            font-size: 100px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -2px;
+        }
+        .btns button {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 12px 30px;
+            margin: 0 10px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btns button:hover {
+            background: white;
+            color: var(--bg-color);
+        }
+        #star-status {
+            margin-top: 30px;
+            font-size: 18px;
+            color: var(--gold);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="sky"></canvas>
+
+    <div class="container">
+        <div id="timer">25:00</div>
+        <div class="btns">
+            <button id="startBtn">BAŞLAT</button>
+            <button id="resetBtn">SIFIRLA</button>
+        </div>
+        <div id="star-status"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('sky');
+        const ctx = canvas.getContext('2d');
+        let timerDisplay = document.getElementById('timer');
+        let stars = [];
+        let bigStarCount = 0;
+        let timeLeft = 25 * 60;
+        let isRunning = false;
+        let timerInterval;
+
+        function setCanvasSize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', setCanvasSize);
+        setCanvasSize();
+
+        class Star {
+            constructor(isBig = false) {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * (canvas.height * 0.8);
+                this.isBig = isBig;
+                this.size = isBig ? (5 + Math.random() * 5) : (Math.random() * 2.5);
+                this.color = isBig ? "#ffd700" : "white";
+                this.alpha = Math.random();
+                this.blinkSpeed = isBig ? 0.005 : (0.01 + Math.random() * 0.03);
+            }
+            draw() {
+                ctx.globalAlpha = Math.abs(Math.sin(this.alpha));
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                // Büyük yıldızları kare/elmas formuna yakın yapalım ki fark edilsin
+                if(this.isBig) {
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = "gold";
+                } else {
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.shadowBlur = 0;
+                }
+                ctx.fill();
+                this.alpha += this.blinkSpeed;
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(star => star.draw());
+            requestAnimationFrame(animate);
+        }
+
+        function updateTimer() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                let m = Math.floor(timeLeft / 60);
+                let s = timeLeft % 60;
+                timerDisplay.innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                
+                // HER SANİYE: Küçük beyaz bir yıldız ekle
+                stars.push(new Star(false));
+            } else {
+                clearInterval(timerInterval);
+                isRunning = false;
+                document.getElementById('startBtn').innerText = "BAŞLAT";
+                
+                // ALERT MESAJINDAN SONRA: Büyük altın yıldız ekle
+                alert("Harika! 25 dakika bitti. Gökyüzüne büyük bir altın yıldız ekleniyor!");
+                
+                bigStarCount++;
+                stars.push(new Star(true)); // Büyük yıldız parametresi
+                document.getElementById('star-status').innerText = `Kazanılan Büyük Yıldızlar: ${"★".repeat(bigStarCount)}`;
+            }
+        }
+
+        document.getElementById('startBtn').onclick = () => {
+            if (!isRunning) {
+                timerInterval = setInterval(updateTimer, 1000);
+                document.getElementById('startBtn').innerText = "DURDUR";
+            } else {
+                clearInterval(timerInterval);
+                document.getElementById('startBtn').innerText = "DEVAM ET";
+            }
+            isRunning = !isRunning;
+        };
+
+        document.getElementById('resetBtn').onclick = () => {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timeLeft = 25 * 60;
+            timerDisplay.innerText = "25:00";
+            // Not: Sıfırlayınca sadece sayaç sıfırlanır, gökyüzündeki yıldızlar hatıra kalsın.
+            document.getElementById('startBtn').innerText = "BAŞLAT";
+        };
+
+        animate();
+    </script>
+</body>
+</html>
